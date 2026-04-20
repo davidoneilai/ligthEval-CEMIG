@@ -1,4 +1,4 @@
-FROM vllm/vllm-openai:cu130-nightly
+FROM vllm/vllm-openai:v0.18.1-cu130
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
