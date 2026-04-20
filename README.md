@@ -1,0 +1,90 @@
+## Execução
+
+### Buildar container
+```bash
+docker build -f Dockerfile -t vllm-LigthEval-cu130 .
+```
+
+### Task genérica
+
+```bash
+docker run --rm -it \
+  --gpus '"device=XXX"' \
+  -e HF_TOKEN="$HF_TOKEN" \
+  -e HOME=/tmp \
+  -e USER=worker \
+  -e LOGNAME=worker \
+  -e USERNAME=worker \
+  -e XDG_CACHE_HOME=/tmp/xdg-cache \
+  -e HF_HOME=/workspace/.cache_user/huggingface \
+  -e HUGGINGFACE_HUB_CACHE=/workspace/.cache_user/huggingface/hub \
+  -e HF_DATASETS_CACHE=/workspace/.cache_user/huggingface/datasets \
+  -e PIP_CACHE_DIR=/workspace/.cache_user/pip \
+  -e TORCHINDUCTOR_CACHE_DIR=/tmp/torchinductor \
+  -e TRITON_CACHE_DIR=/tmp/triton \
+  -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
+  -v "$(pwd):/workspace" \
+  -w /workspace \
+  vllm-LigthEval-cu130 \
+  bash -lc '
+    mkdir -p \
+      /tmp/.cache \
+      /tmp/xdg-cache \
+      /tmp/torchinductor \
+      /tmp/triton \
+      /workspace/.cache_user/huggingface/hub \
+      /workspace/.cache_user/huggingface/datasets \
+      /workspace/.cache_user/pip \
+      /workspace/test_lighteval_out && \
+    lighteval vllm \
+      "model_name=Qwen/Qwen3.5-0.8B,dtype=bfloat16,gpu_memory_utilization=0.35,max_model_length=2048,tensor_parallel_size=1,data_parallel_size=1,pipeline_parallel_size=1,trust_remote_code=True" \
+      "ifeval" \
+      --output-dir /workspace/test_lighteval_out \
+      --save-details
+  '
+```
+
+### Task regulatório-cemig
+
+```bash
+docker run --rm -it \
+  --gpus '"device=XXX"' \
+  -e HF_TOKEN="$HF_TOKEN" \
+  -e HOME=/tmp \
+  -e USER=worker \
+  -e LOGNAME=worker \
+  -e USERNAME=worker \
+  -e XDG_CACHE_HOME=/tmp/xdg-cache \
+  -e HF_HOME=/workspace/.cache_user/huggingface \
+  -e HUGGINGFACE_HUB_CACHE=/workspace/.cache_user/huggingface/hub \
+  -e HF_DATASETS_CACHE=/workspace/.cache_user/huggingface/datasets \
+  -e PIP_CACHE_DIR=/workspace/.cache_user/pip \
+  -e TORCHINDUCTOR_CACHE_DIR=/tmp/torchinductor \
+  -e TRITON_CACHE_DIR=/tmp/triton \
+  -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
+  -v "$(pwd):/workspace" \
+  -w /workspace \
+  vllm-LigthEval-cu130 \
+  bash -lc '
+    mkdir -p \
+      /tmp/.cache \
+      /tmp/xdg-cache \
+      /tmp/torchinductor \
+      /tmp/triton \
+      /workspace/.cache_user/huggingface/hub \
+      /workspace/.cache_user/huggingface/datasets \
+      /workspace/.cache_user/pip \
+      /workspace/test_energy_eval && \
+    lighteval vllm \
+      "model_name=Qwen/Qwen3.5-0.8B,dtype=bfloat16,gpu_memory_utilization=0.35,max_model_length=2048,tensor_parallel_size=1,data_parallel_size=1,pipeline_parallel_size=1,trust_remote_code=True" \
+      "energy_eval|0" \
+      --custom-tasks /workspace/tasks/custom_energy_eval.py \
+      --output-dir /workspace/test_energy_eval \
+      --save-details
+  '
+```
+
+### Scripts
+
+Se preferir, execute o script via bash (ex.: `bash scripts/run_lighteval_vllm.sh`), mas confira antes as variáveis de ambiente, principalmente `HF_TOKEN`, `GPU_DEVICE` e `EVAL_IMAGE`.
+

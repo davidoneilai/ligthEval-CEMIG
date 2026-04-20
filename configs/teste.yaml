@@ -1,0 +1,10 @@
+model_parameters:
+  provider: "hosted_vllm"
+  model_name: "hosted_vllm/Qwen/Qwen3.5-0.8B"
+  base_url: "http://localhost:8765/v1"
+  api_key: ""
+  generation_parameters:
+    temperature: 0.0
+    max_new_tokens: 256
+    top_p: 1.0
+    seed: 0
