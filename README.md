@@ -2,7 +2,7 @@
 
 ### Buildar container
 ```bash
-docker build -f Dockerfile -t vllm-LigthEval-cu130 .
+docker build -f Dockerfile -t vllm-ligtheval-cu130 .
 ```
 
 ### Task genérica
