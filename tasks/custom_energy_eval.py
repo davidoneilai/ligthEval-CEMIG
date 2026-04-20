@@ -6,7 +6,7 @@ from lighteval.metrics.metrics import Metrics
 from lighteval.tasks.lighteval_task import LightevalTaskConfig
 from lighteval.tasks.requests import Doc
 
-MAX_CONTEXT_CHARS = 2000
+MAX_CONTEXT_CHARS = 4000
 
 
 def _extract_choices(line: dict):
@@ -23,22 +23,24 @@ def _sanitize_context(raw_context: str) -> str:
 
 
 def _build_prompt(question: str, context: str, labels: list[str], texts: list[str]) -> str:
-    options = "\n".join(f"{lab}. {txt}" for lab, txt in zip(labels, texts))
+    options = "\n".join(f"({lab}): {txt}" for lab, txt in zip(labels, texts))
 
     if context:
         return (
-            "Answer the following multiple choice question about the Brazilian energy sector.\n\n"
-            f"Context:\n{context}\n\n"
-            f"Question:\n{question}\n\n"
-            f"{options}\n\n"
-            "Reply with only the correct letter."
+            "Voce e um assistente prestativo. Responda de forma direta e objetiva.\n\n"
+            f"Contexto:\n{context}\n\n"
+            f"Pergunta:\n{question}\n\n"
+            f"Alternativas:\n{options}\n\n"
+            "Responda apenas com a letra da alternativa correta.\n"
+            "Resposta: "
         )
 
     return (
-        "Answer the following multiple choice question about the Brazilian energy sector.\n\n"
-        f"Question:\n{question}\n\n"
-        f"{options}\n\n"
-        "Reply with only the correct letter."
+        "Voce e um assistente prestativo. Responda de forma direta e objetiva.\n\n"
+        f"Pergunta:\n{question}\n\n"
+        f"Alternativas:\n{options}\n\n"
+        "Responda apenas com a letra da alternativa correta.\n"
+        "Resposta: "
     )
 
 
@@ -57,9 +59,8 @@ def energy_eval_prompt(line: dict, task_name: str | None = None) -> Doc:
     return Doc(
         task_name=task_name,
         query=prompt,
-        choices=labels,          # A, B, C, D, E
+        choices=labels,  # A, B, C, D, E
         gold_index=gold_index,
-        instruction="Reply with only the correct letter (A, B, C, D, or E).",
     )
 
 
@@ -75,8 +76,8 @@ def record_to_sample(record: dict) -> Sample:
 
     return Sample(
         input=prompt,
-        target=record["answerKey"],  # e.g. "D"
-        choices=texts,
+        target=record["answerKey"],
+        choices=labels,
     )
 
 
@@ -89,8 +90,8 @@ energy_eval = LightevalTaskConfig(
     evaluation_splits=["train"],
     few_shots_split=None,
     few_shots_select=None,
-    generation_size=4,
-    metrics=[Metrics.exact_match],
+    generation_size=1,
+    metrics=[Metrics.loglikelihood_acc],
     stop_sequence=["\n"],
     version=0,
     sample_fields=record_to_sample,

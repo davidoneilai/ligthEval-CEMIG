@@ -1,3 +1,6 @@
 .cache
 .cache_user
 **.pyc
+**/__pycache__
+outputs/
+test_energy_eval/
